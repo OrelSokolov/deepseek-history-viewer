@@ -1,0 +1,39 @@
+<article class="conversation">
+    <header class="conversation-header">
+        <h1>{{ title }}</h1>
+        <div class="conversation-meta">
+            <span class="conversation-date">
+                {% if let Some(date) = inserted_at %}
+                Создано: {{ date.format("%d.%m.%Y в %H:%M") }}
+                {% endif %}
+            </span>
+            {% if updated_at.is_some() && updated_at != inserted_at %}
+            <span class="conversation-updated">
+                Обновлено: {{ updated_at.unwrap().format("%d.%m.%Y в %H:%M") }}
+            </span>
+            {% endif %}
+            <span class="conversation-count">{{ message_count }} сообщений</span>
+        </div>
+    </header>
+    
+    <div class="messages-container">
+        {% for message in messages %}
+        {% if message.message_type != "SEARCH" %}
+        <div class="message message-{{ message.message_type|lower }}">
+            <div class="message-header">
+                <span class="message-time">
+                    {% if let Some(date) = message.inserted_at %}
+                    {{ date.format("%H:%M") }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="message-content">
+                {{ message.content_html|safe }}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</article>
+

@@ -1,0 +1,15 @@
+<div class="welcome">
+    <h1>DeepSeek Chat History</h1>
+    <p>Всего чатов: {{ total_conversations }}</p>
+    <p>Используйте поиск (Ctrl+K) или выберите чат из списка</p>
+</div>
+
+<div class="stats">
+    {% for month in conversations_by_month %}
+    <div class="month-stats">
+        <h3>{{ month.label }}</h3>
+        <p>{{ month.conversations.len() }} чатов</p>
+    </div>
+    {% endfor %}
+</div>
+

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing - DeepSeek Chat History</title>
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .processing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .processing-card {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .processing-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .processing-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 6px;
+        }
+        
+        .processing-header p {
+            font-size: 13px;
+            color: #718096;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 13px;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        
+        .status-log {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f7fafc;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: #2d3748;
+        }
+        
+        .status-log div {
+            margin-bottom: 3px;
+        }
+        
+        .error-message {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            border-radius: 8px;
+            color: #742a2a;
+            display: none;
+        }
+        
+        .error-message strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .retry-btn {
+            margin-top: 16px;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .retry-btn:hover {
+            background: #5568d3;
+        }
+        
+        .success-message {
+            margin-top: 24px;
+            padding: 16px;
+            background: #c6f6d5;
+            border: 1px solid #68d391;
+            border-radius: 8px;
+            color: #22543d;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="processing-container">
+        <div class="processing-card">
+            <div class="spinner" id="spinner"></div>
+            
+            <div class="processing-header">
+                <h1 id="statusTitle">Processing Conversations</h1>
+                <p id="statusSubtitle">Please wait while we process your file...</p>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="progress-text" id="progressText">0%</div>
+            
+            <div class="status-log" id="statusLog"></div>
+            
+            <div class="error-message" id="errorMessage">
+                <strong>Error occurred:</strong>
+                <span id="errorText"></span>
+                <button class="retry-btn" id="retryBtn">Select Another File</button>
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                <strong>✓ Processing Complete!</strong>
+                <p>Redirecting to conversations...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            console.log('=== PROCESSING PAGE LOADED ===');
+            console.log('window.__TAURI__:', typeof window.__TAURI__);
+            
+            const isInTauri = window.__TAURI__ !== undefined;
+            const urlParams = new URLSearchParams(window.location.search);
+            const filePath = urlParams.get('file');
+            
+            console.log('isInTauri:', isInTauri);
+            console.log('filePath:', filePath);
+            
+            if (isInTauri) {
+                console.log('Tauri modules:', Object.keys(window.__TAURI__));
+                if (window.__TAURI__.core) {
+                    console.log('Core API:', Object.keys(window.__TAURI__.core));
+                }
+                if (window.__TAURI__.event) {
+                    console.log('Event API:', Object.keys(window.__TAURI__.event));
+                }
+            }
+            
+            function addLog(message) {
+                console.log('[LOG]', message);
+                const log = document.getElementById('statusLog');
+                const div = document.createElement('div');
+                div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                log.appendChild(div);
+                log.scrollTop = log.scrollHeight;
+            }
+            
+            function updateProgress(percent, message) {
+                console.log('[PROGRESS]', percent, message);
+                document.getElementById('progressFill').style.width = percent + '%';
+                document.getElementById('progressText').textContent = Math.round(percent) + '%';
+                if (message) {
+                    addLog(message);
+                }
+            }
+            
+            function showError(error) {
+                console.error('[ERROR]', error);
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorText').textContent = error;
+                document.getElementById('statusTitle').textContent = 'Processing Failed';
+                document.getElementById('statusSubtitle').textContent = 'An error occurred while processing your file';
+            }
+            
+            function showSuccess() {
+                console.log('[SUCCESS] Processing complete');
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('statusTitle').textContent = 'Success!';
+                document.getElementById('statusSubtitle').textContent = 'Your conversations have been imported';
+                
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            }
+            
+            async function processFile() {
+                console.log('=== PROCESS FILE CALLED ===');
+                
+                if (!isInTauri) {
+                    showError('This feature is only available in the desktop app');
+                    return;
+                }
+                
+                if (!filePath) {
+                    showError('No file selected');
+                    return;
+                }
+                
+                try {
+                    console.log('Getting Tauri APIs...');
+                    const { invoke } = window.__TAURI__.core;
+                    const { listen } = window.__TAURI__.event;
+                    
+                    console.log('invoke:', typeof invoke);
+                    console.log('listen:', typeof listen);
+                    
+                    // Listen for progress updates
+                    console.log('Setting up progress listener...');
+                    const unlisten = await listen('import-progress', (event) => {
+                        console.log('=== PROGRESS EVENT ===', event);
+                        const { percent, message } = event.payload;
+                        updateProgress(percent, message);
+                        
+                        if (percent >= 100) {
+                            console.log('Processing complete, showing success');
+                            unlisten();
+                            showSuccess();
+                        }
+                    });
+                    
+                    console.log('Progress listener set up');
+                    
+                    addLog('Starting import process...');
+                    addLog('File: ' + filePath);
+                    
+                    // Start processing
+                    console.log('Invoking process_conversations_file with:', filePath);
+                    await invoke('process_conversations_file', { filePath });
+                    
+                    console.log('Invoke completed');
+                } catch (err) {
+                    console.error('=== PROCESSING ERROR ===');
+                    console.error('Error:', err);
+                    console.error('Message:', err.message);
+                    console.error('Stack:', err.stack);
+                    showError(err.toString());
+                }
+            }
+            
+            document.getElementById('retryBtn').addEventListener('click', () => {
+                window.location.href = '/import';
+            });
+            
+            // Start processing when page loads
+            console.log('Checking if should start processing...');
+            if (filePath) {
+                console.log('Starting processing...');
+                processFile();
+            } else {
+                console.error('No file path in URL');
+                showError('No file selected');
+            }
+        })();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Conversations - DeepSeek Chat History</title>
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .import-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .import-card {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .import-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .import-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 6px;
+        }
+        
+        .import-header p {
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .import-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .import-icon svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+        
+        .import-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .import-btn {
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .import-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .import-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .import-btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .import-btn-secondary:hover {
+            background: #edf2f7;
+        }
+        
+        .import-info {
+            margin-top: 20px;
+            padding: 14px;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+        
+        .import-info strong {
+            color: #2d3748;
+        }
+        
+        .current-file {
+            margin-top: 14px;
+            padding: 10px;
+            background: #edf2f7;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #4a5568;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="import-container">
+        <div class="import-card">
+            <div class="import-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            </div>
+            
+            <div class="import-header">
+                <h1>Import Conversations</h1>
+                <p>Select a JSON file with your DeepSeek conversations</p>
+            </div>
+            
+            <div class="import-actions">
+                <button class="import-btn import-btn-primary" id="selectFileBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                    Select JSON File
+                </button>
+                
+                <button class="import-btn import-btn-secondary" id="viewConversationsBtn" style="display: none;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View Conversations
+                </button>
+            </div>
+            
+            <div class="import-info">
+                <strong>Expected format:</strong> JSON file exported from DeepSeek Chat<br>
+                The file should contain an array of conversation objects with messages.
+            </div>
+            
+            <div class="current-file" id="currentFile" style="display: none;">
+                <strong>Current file:</strong> <span id="currentFilePath"></span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            const isInTauri = window.__TAURI__ !== undefined;
+            
+            console.log('Import page loaded, isInTauri:', isInTauri);
+            if (isInTauri) {
+                console.log('Tauri modules:', Object.keys(window.__TAURI__));
+            }
+            
+            document.getElementById('selectFileBtn').addEventListener('click', async function() {
+                console.log('Select file button clicked');
+                
+                if (!isInTauri) {
+                    alert('This feature is only available in the desktop app');
+                    return;
+                }
+                
+                try {
+                    console.log('Attempting to open file dialog...');
+                    console.log('window.__TAURI__.dialog:', window.__TAURI__.dialog);
+                    
+                    // In Tauri 2.0, dialog API is available directly
+                    const selected = await window.__TAURI__.dialog.open({
+                        multiple: false,
+                        filters: [{
+                            name: 'JSON',
+                            extensions: ['json']
+                        }]
+                    });
+                    
+                    console.log('Dialog result:', selected);
+                    
+                    if (selected) {
+                        console.log('Selected file:', selected);
+                        
+                        // Navigate to processing page
+                        window.location.href = '/import/process?file=' + encodeURIComponent(selected);
+                    }
+                } catch (err) {
+                    console.error('Failed to select file:', err);
+                    console.error('Error details:', err.message, err.stack);
+                    alert('Failed to select file: ' + err.message);
+                }
+            });
+            
+            // Check if we have existing conversations
+            if (isInTauri) {
+                window.__TAURI__.core.invoke('has_conversations').then(hasConvs => {
+                    console.log('Has conversations:', hasConvs);
+                    if (hasConvs) {
+                        document.getElementById('viewConversationsBtn').style.display = 'flex';
+                        document.getElementById('viewConversationsBtn').addEventListener('click', () => {
+                            window.location.href = '/';
+                        });
+                    }
+                }).catch(err => {
+                    console.error('Failed to check conversations:', err);
+                });
+                
+                // Check current file path
+                window.__TAURI__.core.invoke('get_current_file_path').then(path => {
+                    console.log('Current file path:', path);
+                    if (path) {
+                        document.getElementById('currentFile').style.display = 'block';
+                        document.getElementById('currentFilePath').textContent = path;
+                    }
+                }).catch(err => {
+                    console.error('Failed to get current file path:', err);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
+

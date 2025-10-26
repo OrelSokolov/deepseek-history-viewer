@@ -1,0 +1,36 @@
+etc/**/*
+conversations.json
+# Rust
+/target/
+**/*.rs.bk
+
+# Search index
+/data/
+
+# Jekyll
+
+deepseek-chat-viewer/**/*
+deepseek-chat-viewer/_site/
+deepseek-chat-viewer/.jekyll-cache/
+deepseek-chat-viewer/.sass-cache/
+deepseek-chat-viewer/.jekyll-metadata
+
+# Release
+/release/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+target/**/*
+
+dist/**/*
+
+example.html
+
+user.json
+gen/
+.rake_tasks~
