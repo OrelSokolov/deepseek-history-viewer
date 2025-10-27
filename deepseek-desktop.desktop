@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=DeepSeek History Search
+Comment=View and search your DeepSeek chat conversations
+Exec=deepseek-desktop
+Icon=deepseek-desktop
+Terminal=false
+Categories=Utility;
+MimeType=
+StartupWMClass=deepseek-desktop

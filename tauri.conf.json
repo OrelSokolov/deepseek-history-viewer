@@ -1,13 +1,13 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "deepseek-desktop",
+  "productName": "DeepSeek History Search",
   "version": "0.1.0",
-  "identifier": "com.deepseek.viewer",
+  "identifier": "com.deepseek.history-viewer",
   "build": {
     "beforeDevCommand": "",
     "devUrl": "http://localhost:8080",
     "beforeBuildCommand": "",
-    "frontendDist": "../dist"
+    "frontendDist": "./dist"
   },
   "app": {
     "withGlobalTauri": true,
@@ -44,9 +44,17 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["deb", "rpm"],
     "icon": [
       "icons/icon.png"
-    ]
+    ],
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0"
+        ]
+      }
+    }
   }
 }

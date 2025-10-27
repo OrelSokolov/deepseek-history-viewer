@@ -56,12 +56,12 @@ name = "deepseek_viewer"
 path = "src/lib.rs"
 
 [[bin]]
-name = "deepseek-viewer"
-path = "src/main.rs"
-
-[[bin]]
 name = "deepseek-desktop"
 path = "src/tauri.rs"
+
+[[bin]]
+name = "deepseek-viewer"
+path = "src/main.rs"
 
 [profile.release]
 opt-level = 3
