@@ -1,7 +1,8 @@
 [package]
-name = "deepseek-viewer"
+name = "deepseek-app"
 version = "0.1.0"
 edition = "2021"
+default-run = "deepseek-desktop"
 
 [dependencies]
 # Web server
@@ -52,7 +53,7 @@ tauri-build = { version = "2", features = [] }
 tempfile = "3.8"
 
 [lib]
-name = "deepseek_viewer"
+name = "deepseek_app"
 path = "src/lib.rs"
 
 [[bin]]
@@ -67,4 +68,12 @@ path = "src/main.rs"
 opt-level = 3
 lto = true
 codegen-units = 1
+strip = true
+
+[profile.release-fast]
+# Fast release build for development - much faster linking
+inherits = "release"
+opt-level = 3
+lto = "thin"
+codegen-units = 256
 strip = true

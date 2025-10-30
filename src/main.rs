@@ -7,7 +7,7 @@ mod server;
 mod templates;
 
 // Use from lib
-use deepseek_viewer::{indexer, search};
+use deepseek_app::{indexer, search};
 use std::path::PathBuf;
 
 #[tokio::main]

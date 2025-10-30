@@ -58,5 +58,68 @@ task :rebuild => [:clean, :build, :run]
 desc "Run tests and then start server"
 task :test_and_run => [:test, :run]
 
+namespace :build do
+  namespace :windows do
+    desc "Build Windows MSI bundle"
+    task :msi do
+      puts "🔨 Building Windows MSI bundle..."
+      sh "cargo tauri build --bundles msi -- --bin deepseek-desktop"
+      puts "✅ MSI built successfully!"
+      puts "📦 Output: target/release/bundle/msi/*.msi"
+    end
+
+    desc "Build Windows NSIS bundle"
+    task :nsis do
+      puts "🔨 Building Windows NSIS bundle..."
+      sh "cargo tauri build --bundles nsis -- --bin deepseek-desktop"
+      puts "✅ NSIS built successfully!"
+      puts "📦 Output: target/release/bundle/nsis/*.exe"
+    end
+
+    desc "Build all Windows bundles (MSI + NSIS)"
+    task :all => [:msi, :nsis] do
+      puts "✅ All Windows bundles built successfully!"
+    end
+  end
+
+  namespace :mac do
+    desc "Build macOS DMG bundle"
+    task :dmg do
+      puts "🔨 Building macOS DMG bundle..."
+      sh "cargo tauri build --bundles dmg"
+      puts "✅ DMG built successfully!"
+      puts "📦 Output: target/release/bundle/dmg/*.dmg"
+    end
+
+    desc "Build all macOS bundles (DMG)"
+    task :all => [:dmg] do
+      puts "✅ All macOS bundles built successfully!"
+    end
+  end
+
+  namespace :linux do
+    desc "Build Linux DEB bundle"
+    task :deb do
+      puts "🔨 Building Linux DEB bundle..."
+      sh "cargo tauri build --bundles deb"
+      puts "✅ DEB built successfully!"
+      puts "📦 Output: target/release/bundle/deb/*.deb"
+    end
+
+    desc "Build Linux RPM bundle"
+    task :rpm do
+      puts "🔨 Building Linux RPM bundle..."
+      sh "cargo tauri build --bundles rpm"
+      puts "✅ RPM built successfully!"
+      puts "📦 Output: target/release/bundle/rpm/*.rpm"
+    end
+
+    desc "Build all Linux bundles (DEB + RPM)"
+    task :all => [:deb, :rpm] do
+      puts "✅ All Linux bundles built successfully!"
+    end
+  end
+end
+
 task :default => :run
 

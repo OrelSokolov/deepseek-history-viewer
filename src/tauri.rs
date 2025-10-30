@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use anyhow::Result;
 use tauri::{generate_handler, Emitter, Manager, State, Window};
 use tracing_subscriber::prelude::*;
@@ -9,8 +11,8 @@ mod server;
 mod templates;
 
 use config::AppConfig;
-use deepseek_viewer::indexer;
-use deepseek_viewer::search::SearchEngine;
+use deepseek_app::indexer;
+use deepseek_app::search::SearchEngine;
 use std::path::PathBuf;
 
 pub struct AppState {

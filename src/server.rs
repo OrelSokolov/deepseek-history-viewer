@@ -13,7 +13,7 @@ use tower_http::{
     services::ServeDir,
 };
 
-use deepseek_viewer::search::{SearchEngine, SearchResult};
+use deepseek_app::search::{SearchEngine, SearchResult};
 
 #[derive(Clone)]
 struct AppState {

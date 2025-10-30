@@ -4,8 +4,8 @@ use std::fs;
 use tempfile::TempDir;
 
 // Import from the main crate
-use deepseek_viewer::search::SearchEngine;
-use deepseek_viewer::indexer;
+use deepseek_app::search::SearchEngine;
+use deepseek_app::indexer;
 
 #[tokio::test]
 async fn test_ngram_substring_search() -> Result<()> {
