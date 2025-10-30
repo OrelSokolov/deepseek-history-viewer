@@ -11,6 +11,7 @@ mod templates;
 use config::AppConfig;
 use deepseek_viewer::indexer;
 use deepseek_viewer::search::SearchEngine;
+use std::path::PathBuf;
 
 pub struct AppState {
     pub index_path: String,
@@ -192,8 +193,12 @@ async fn main() -> Result<()> {
     let config = AppConfig::load().unwrap_or_default();
     let config = Arc::new(Mutex::new(config));
     
-    let output_dir = "dist";
-    let index_path = "data/search_index";
+    // Use user-local data directory to avoid permission issues
+    let base_data_dir: PathBuf = dirs::data_local_dir()
+        .unwrap_or_else(|| std::env::current_dir().unwrap())
+        .join("deepseek-viewer");
+    let output_dir = base_data_dir.join("dist");
+    let index_path = base_data_dir.join("search_index");
 
     // Check if we have a configured file and it exists
     let has_valid_config = {
@@ -210,18 +215,20 @@ async fn main() -> Result<()> {
         };
         
         // Generate site if needed
-        if !std::path::Path::new(output_dir).exists() {
-            tracing::info!("📦 Generating HTML site...");
-            generator::generate_site(&conversations_path, output_dir).await?;
+        if !output_dir.exists() {
+            tracing::info!("📦 Generating HTML site in {}...", output_dir.display());
+            std::fs::create_dir_all(&output_dir)?;
+            generator::generate_site(&conversations_path, output_dir.to_str().unwrap()).await?;
             tracing::info!("✅ HTML site generated");
         } else {
-            tracing::info!("✅ Using existing HTML site in {}", output_dir);
+            tracing::info!("✅ Using existing HTML site in {}", output_dir.display());
         }
 
         // Build search index if needed
-        if !std::path::Path::new(index_path).exists() {
-            tracing::info!("📚 Building search index...");
-            indexer::build_index(&conversations_path, index_path).await?;
+        if !index_path.exists() {
+            tracing::info!("📚 Building search index in {}...", index_path.display());
+            std::fs::create_dir_all(&index_path)?;
+            indexer::build_index(&conversations_path, index_path.to_str().unwrap()).await?;
             tracing::info!("✅ Search index built");
         } else {
             tracing::info!("✅ Using existing search index");
@@ -230,19 +237,19 @@ async fn main() -> Result<()> {
         tracing::info!("⚠️  No conversations file configured - will show import page");
         
         // Create empty dist directory with just the import pages
-        if !std::path::Path::new(output_dir).exists() {
-            std::fs::create_dir_all(output_dir)?;
+        if !output_dir.exists() {
+            std::fs::create_dir_all(&output_dir)?;
         }
         
         // Create empty index directory
-        if !std::path::Path::new(index_path).exists() {
-            std::fs::create_dir_all(index_path)?;
+        if !index_path.exists() {
+            std::fs::create_dir_all(&index_path)?;
         }
     }
 
     // Always start embedded web server
-    let server_output_dir = output_dir.to_string();
-    let server_index_path = index_path.to_string();
+    let server_output_dir = output_dir.to_string_lossy().to_string();
+    let server_index_path = index_path.to_string_lossy().to_string();
     
     tokio::spawn(async move {
         tracing::info!("🌐 Starting embedded web server on http://127.0.0.1:8080");
@@ -289,8 +296,8 @@ async fn main() -> Result<()> {
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     let app_state = AppState {
-        index_path: index_path.to_string(),
-        output_dir: output_dir.to_string(),
+        index_path: index_path.to_string_lossy().to_string(),
+        output_dir: output_dir.to_string_lossy().to_string(),
         config: config.clone(),
     };
 

@@ -5,7 +5,7 @@
   "identifier": "com.deepseek.history-viewer",
   "build": {
     "beforeDevCommand": "",
-    "devUrl": "http://localhost:8080",
+    "devUrl": "http://127.0.0.1:8080",
     "beforeBuildCommand": "",
     "frontendDist": "./dist"
   },
